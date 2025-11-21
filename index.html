@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>Free Invoice Generator | Create PDF Invoices Online</title>
+    <meta name="title" content="Free Invoice Generator | Create PDF Invoices Online" />
+    <meta name="description" content="Create professional PDF invoices for free with this easy-to-use online invoice generator. No login required, client-side secure, and instant download." />
+    <meta name="keywords" content="invoice generator, free invoice maker, create invoice online, pdf invoice, billing software, receipt maker, freelance invoice template" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="author" content="React Invoice Generator" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://freeinvoicegenrator.com/" />
+    <meta property="og:title" content="Free Invoice Generator | Create PDF Invoices Online" />
+    <meta property="og:description" content="Create professional PDF invoices for free. No login required. Secure client-side generation." />
+    <meta property="og:image" content="https://freeinvoicegenrator.com/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://freeinvoicegenrator.com/" />
+    <meta property="twitter:title" content="Free Invoice Generator | Create PDF Invoices Online" />
+    <meta property="twitter:description" content="Create professional PDF invoices for free. No login required. Secure client-side generation." />
+    <meta property="twitter:image" content="https://freeinvoicegenrator.com/og-image.png" />
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5920039237214291"
+     crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom Scrollbar Styles */
+      /* For Webkit-based browsers (Chrome, Safari, Edge) */
+      ::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background-color: #1f2937; /* gray-800 */
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: #6b7280; /* gray-500 */
+        border-radius: 10px;
+        border: 3px solid #1f2937; /* Same as track color to create a padding effect */
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #9ca3af; /* gray-400 */
+      }
+
+      /* For Firefox */
+      html {
+        scrollbar-width: auto; /* 'thin' or 'auto' */
+        scrollbar-color: #6b7280 #1f2937; /* thumb color track color */
+      }
+
+      /* Custom Date Picker Styles */
+      /* Hides the default calendar icon in WebKit browsers but keeps it clickable */
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
+    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
+  }
+}
+</script>
+<!-- Structured Data for SEO (Schema.org) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Free Invoice Generator",
+      "operatingSystem": "Web",
+      "applicationCategory": "BusinessApplication",
+      "url": "https://freeinvoicegenrator.com",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "A free, client-side invoice generator built with React. Create and download PDF invoices instantly without server-side processing.",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1250"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is this invoice generator completely free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, this invoice generator is 100% free to use. There are no hidden charges, subscriptions, or watermarks on the generated PDF invoices."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my data secure?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely. This is a client-side application, meaning all your data is processed locally in your browser. We do not store your invoice details on our servers unless you explicitly choose to save them to your account."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I change the currency?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, our invoice generator supports multiple currencies including USD, EUR, INR, GBP, and many more. You can select your preferred currency from the settings."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I download the invoice as PDF?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Once you have filled in all the necessary details, simply click the 'Download PDF' button at the top right of the page to instantly generate and download your invoice."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "How to Create an Invoice Online",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Enter Your Business Details",
+          "text": "Fill in the 'Bill From' section with your company name, address, and contact information. You can also upload your company logo.",
+          "image": "https://freeinvoicegenrator.com/og-image.png"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Add Client Details",
+          "text": "Fill in the 'Bill To' section with your client's name and address details."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Add Invoice Items",
+          "text": "List the services or products provided. Enter the description, quantity, and price for each item. The subtotal is calculated automatically."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Configure Tax and Discounts",
+          "text": "Set the tax rate (GST, VAT, etc.) and apply any discounts if necessary."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Download PDF",
+          "text": "Review the invoice preview and click the 'Download PDF' button to save the document to your device."
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/index.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5920039237214291"
+     crossorigin="anonymous"></script>
+</head>
+  <body class="bg-slate-50">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

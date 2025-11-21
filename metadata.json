@@ -1,0 +1,5 @@
+{
+  "name": "React Invoice Generator",
+  "description": "A free, client-side invoice generator. Create professional PDF invoices instantly online. No login required, secure, and customizable.",
+  "requestFramePermissions": []
+}
