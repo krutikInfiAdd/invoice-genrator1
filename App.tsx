@@ -208,8 +208,9 @@ const AppContent: React.FC = () => {
               {!showPreview ? (
                 // Edit Mode
                 <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-                  <div className="flex flex-col lg:flex-row justify-between items-center mb-6 border-b pb-4 gap-4">
-                    <h2 className="text-xl font-semibold text-center lg:text-left">
+                  {/* Improved header responsiveness: Stack on mobile, Row on sm+ */}
+                  <div className="flex flex-col sm:flex-row justify-between items-center mb-6 border-b pb-4 gap-4">
+                    <h2 className="text-xl font-semibold text-center sm:text-left">
                       Edit {currentView === 'quotation' ? 'Quotation' : 'Invoice'} Details
                     </h2>
                     <div className="flex flex-wrap justify-center gap-2">

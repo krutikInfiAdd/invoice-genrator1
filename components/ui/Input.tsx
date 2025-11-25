@@ -10,7 +10,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const invalidClasses = 'border-red-500 focus:ring-red-500';
     const validClasses = 'border-gray-300 focus:ring-indigo-500';
     
-    const baseClasses = `flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`;
+    // text-base on mobile prevents iOS zoom, md:text-sm reverts to standard desktop size
+    const baseClasses = `flex h-10 w-full rounded-md border bg-white px-3 py-2 text-base md:text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`;
 
     if (type === 'date') {
       return (

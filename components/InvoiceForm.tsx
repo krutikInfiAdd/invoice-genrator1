@@ -28,26 +28,26 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
       {/* Invoice Meta */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700">Invoice Number</label>
+          <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
           <Input id="invoiceNumber" value={details.invoiceNumber} onChange={(e) => updateDetail('invoiceNumber', e.target.value)} isInvalid={!!errors.invoiceNumber} />
           {errors.invoiceNumber && <p className="text-xs text-red-600 mt-1">{errors.invoiceNumber}</p>}
         </div>
         <div>
-          <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700">Issue Date</label>
+          <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
           <Input id="issueDate" type="date" value={details.issueDate} onChange={(e) => updateDetail('issueDate', e.target.value)} isInvalid={!!errors.issueDate} />
           {errors.issueDate && <p className="text-xs text-red-600 mt-1">{errors.issueDate}</p>}
         </div>
         <div>
-          <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Due Date</label>
+          <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
           <Input id="dueDate" type="date" value={details.dueDate} onChange={(e) => updateDetail('dueDate', e.target.value)} isInvalid={!!errors.dueDate} />
           {errors.dueDate && <p className="text-xs text-red-600 mt-1">{errors.dueDate}</p>}
         </div>
       </div>
       
       {/* Bill From / To */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Bill From</h3>
+          <h3 className="font-semibold text-lg text-gray-900 border-b pb-2">Bill From</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Company Logo</label>
             {details.logo ? (
@@ -87,7 +87,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           </div>
         </div>
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Bill To</h3>
+          <h3 className="font-semibold text-lg text-gray-900 border-b pb-2">Bill To</h3>
           <div>
             <Input placeholder="Client Name" value={details.billTo.name} onChange={(e) => updateContact('billTo', 'name', e.target.value)} isInvalid={!!errors['billTo.name']} />
             {errors['billTo.name'] && <p className="text-xs text-red-600 mt-1">{errors['billTo.name']}</p>}
@@ -112,79 +112,99 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
       
       {/* Items Table */}
       <div>
-        <h3 className="font-semibold text-lg mb-2">Items</h3>
-        <div className="space-y-2">
+        <h3 className="font-semibold text-lg mb-4 text-gray-900">Items</h3>
+        <div className="space-y-4 md:space-y-2">
           {details.items.map((item, index) => (
-            <div key={item.id} className="grid grid-cols-12 gap-2 items-end">
-              <div className="col-span-12 sm:col-span-4">
-                {index === 0 && <label className="text-xs text-gray-500">Description</label>}
+            <div key={item.id} className="grid grid-cols-12 gap-x-2 gap-y-3 items-end pb-6 md:pb-0 border-b border-gray-100 md:border-0 last:border-0 md:last:border-0">
+              
+              {/* Description: Full width on mobile, 4 cols on desktop */}
+              <div className="col-span-12 md:col-span-4">
+                {index === 0 && <label className="hidden md:block text-xs font-medium text-gray-500 mb-1">Description</label>}
+                <label className="md:hidden text-xs font-medium text-gray-500 mb-1 block">Description</label>
                 <Input placeholder="Item description" value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} isInvalid={!!errors[`items.${index}.description`]} />
                 {errors[`items.${index}.description`] && <p className="text-xs text-red-600 mt-1">{errors[`items.${index}.description`]}</p>}
               </div>
-              <div className="col-span-4 sm:col-span-2">
-                 {index === 0 && <label className="text-xs text-gray-500">HSN/SAC</label>}
+
+              {/* HSN: 3 cols mobile, 2 cols desktop */}
+              <div className="col-span-3 md:col-span-2">
+                 {index === 0 && <label className="hidden md:block text-xs font-medium text-gray-500 mb-1">HSN/SAC</label>}
+                 <label className="md:hidden text-xs font-medium text-gray-500 mb-1 block">HSN</label>
                  <Input placeholder="HSN" value={item.hsn || ''} onChange={(e) => updateItem(item.id, 'hsn', e.target.value)} />
               </div>
-              <div className="col-span-3 sm:col-span-2">
-                {index === 0 && <label className="text-xs text-gray-500">Qty</label>}
-                <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))} isInvalid={!!errors[`items.${index}.quantity`]} />
-                {errors[`items.${index}.quantity`] && <p className="text-xs text-red-600 mt-1">{errors[`items.${index}.quantity`]}</p>}
+
+              {/* Qty: 3 cols mobile, 2 cols desktop */}
+              <div className="col-span-3 md:col-span-2">
+                {index === 0 && <label className="hidden md:block text-xs font-medium text-gray-500 mb-1">Qty</label>}
+                <label className="md:hidden text-xs font-medium text-gray-500 mb-1 block">Qty</label>
+                <Input type="number" placeholder="0" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))} isInvalid={!!errors[`items.${index}.quantity`]} />
               </div>
-              <div className="col-span-4 sm:col-span-3">
-                {index === 0 && <label className="text-xs text-gray-500">Price</label>}
-                <Input type="number" placeholder="Price" value={item.price} onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))} isInvalid={!!errors[`items.${index}.price`]} />
-                {errors[`items.${index}.price`] && <p className="text-xs text-red-600 mt-1">{errors[`items.${index}.price`]}</p>}
+
+              {/* Price: 4 cols mobile, 3 cols desktop */}
+              <div className="col-span-4 md:col-span-3">
+                {index === 0 && <label className="hidden md:block text-xs font-medium text-gray-500 mb-1">Price</label>}
+                <label className="md:hidden text-xs font-medium text-gray-500 mb-1 block">Price</label>
+                <Input type="number" placeholder="0.00" value={item.price} onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))} isInvalid={!!errors[`items.${index}.price`]} />
               </div>
-              <div className="col-span-1 sm:col-span-1 flex items-end h-full">
+
+              {/* Trash: 2 cols mobile, 1 col desktop */}
+              <div className="col-span-2 md:col-span-1 flex items-end h-full">
                 <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 w-full h-10" aria-label="Remove item">
-                  <TrashIcon className="h-4 w-4" />
+                  <TrashIcon className="h-5 w-5" />
                 </Button>
               </div>
+
+              {/* Mobile Only Error Messages for secondary fields */}
+              {(errors[`items.${index}.quantity`] || errors[`items.${index}.price`]) && (
+                <div className="col-span-12 md:hidden">
+                   {errors[`items.${index}.quantity`] && <p className="text-xs text-red-600">Qty: {errors[`items.${index}.quantity`]}</p>}
+                   {errors[`items.${index}.price`] && <p className="text-xs text-red-600">Price: {errors[`items.${index}.price`]}</p>}
+                </div>
+              )}
             </div>
           ))}
         </div>
-        <Button variant="outline" onClick={addItem} className="mt-4">
+        <Button variant="outline" onClick={addItem} className="mt-4 w-full md:w-auto">
           <PlusIcon className="h-4 w-4 mr-2" /> Add Item
         </Button>
       </div>
 
       {/* Notes, Terms, Discount & Tax */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-gray-100">
         <div className="space-y-4">
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Notes</label>
-            <Textarea id="notes" value={details.notes} onChange={(e) => updateDetail('notes', e.target.value)} rows={3} />
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <Textarea id="notes" value={details.notes} onChange={(e) => updateDetail('notes', e.target.value)} rows={3} placeholder="Additional notes for the client..." />
           </div>
           <div>
-            <label htmlFor="terms" className="block text-sm font-medium text-gray-700">Terms & Conditions</label>
-            <Textarea id="terms" value={details.terms} onChange={(e) => updateDetail('terms', e.target.value)} rows={3} />
+            <label htmlFor="terms" className="block text-sm font-medium text-gray-700 mb-1">Terms & Conditions</label>
+            <Textarea id="terms" value={details.terms} onChange={(e) => updateDetail('terms', e.target.value)} rows={3} placeholder="Payment terms, warranty, etc..." />
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
           <div>
-            <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
+            <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
             <CurrencySelect id="currency" value={details.currency} onChange={(e) => updateDetail('currency', e.target.value)} />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
              <div className={details.taxType === 'none' ? 'col-span-2' : ''}>
-              <label htmlFor="taxType" className="block text-sm font-medium text-gray-700">Tax Mode</label>
+              <label htmlFor="taxType" className="block text-sm font-medium text-gray-700 mb-1">Tax Mode</label>
               <select
                 id="taxType"
-                className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 value={details.taxType || 'standard'}
                 onChange={(e) => updateDetail('taxType', e.target.value as TaxType)}
               >
                 <option value="standard">Standard Tax</option>
-                <option value="cgst_sgst">GST (Intra-state: CGST+SGST)</option>
+                <option value="cgst_sgst">GST (Intra-state)</option>
                 <option value="igst">IGST (Inter-state)</option>
                 <option value="none">None (No Tax)</option>
               </select>
             </div>
             {details.taxType !== 'none' && (
               <div>
-                <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700">
-                   {details.taxType === 'cgst_sgst' ? 'Total Tax Rate (%)' : 'Tax Rate (%)'}
+                <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 mb-1">
+                   {details.taxType === 'cgst_sgst' ? 'Total Rate (%)' : 'Rate (%)'}
                 </label>
                 <Input id="taxRate" type="number" value={details.taxRate} onChange={(e) => updateDetail('taxRate', Number(e.target.value))} isInvalid={!!errors.taxRate} />
                 {errors.taxRate && <p className="text-xs text-red-600 mt-1">{errors.taxRate}</p>}
@@ -193,12 +213,12 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           </div>
 
           <div>
-            <label htmlFor="discount" className="block text-sm font-medium text-gray-700">Discount (%)</label>
+            <label htmlFor="discount" className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
             <Input id="discount" type="number" value={details.discount} onChange={(e) => updateDetail('discount', Number(e.target.value))} isInvalid={!!errors.discount} />
             {errors.discount && <p className="text-xs text-red-600 mt-1">{errors.discount}</p>}
           </div>
           <div>
-            <label htmlFor="amountPaid" className="block text-sm font-medium text-gray-700">Amount Paid</label>
+            <label htmlFor="amountPaid" className="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
             <Input id="amountPaid" type="number" value={details.amountPaid} onChange={(e) => updateDetail('amountPaid', Number(e.target.value))} isInvalid={!!errors.amountPaid} />
             {errors.amountPaid && <p className="text-xs text-red-600 mt-1">{errors.amountPaid}</p>}
           </div>
