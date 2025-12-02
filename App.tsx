@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -23,6 +22,7 @@ import { EyeIcon } from './components/icons/EyeIcon';
 import { EditIcon } from './components/icons/EditIcon';
 import { SaveIcon } from './components/icons/SaveIcon';
 import { DownloadIcon } from './components/icons/DownloadIcon';
+import { ReviewModal } from './components/ReviewModal';
 import type { InvoiceDetails } from './types';
 
 // NOTE: To run this project, you'll need to install jspdf and html2canvas:
@@ -37,6 +37,9 @@ const AppContent: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('generator');
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Review Modal State
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const activeDocument = currentView === 'quotation' ? quotation : invoice;
   const documentTitle = currentView === 'quotation' ? 'QUOTATION' : 'INVOICE';
@@ -96,6 +99,20 @@ const AppContent: React.FC = () => {
       alert("Failed to save document.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleReviewSubmit = async (rating: number, comment: string) => {
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        rating,
+        comment,
+        userId: user ? user.uid : 'anonymous',
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error saving review:", error);
+      // We don't alert the user here to keep the flow smooth, just log it.
     }
   };
 
@@ -170,6 +187,11 @@ const AppContent: React.FC = () => {
       const prefix = currentView === 'quotation' ? 'quotation' : 'invoice';
       const number = activeDocument.details.invoiceNumber || '001';
       pdf.save(`${prefix}-${number}.pdf`);
+
+      // Trigger Review Modal after successful download (with a slight delay for UX)
+      setTimeout(() => {
+        setIsReviewModalOpen(true);
+      }, 2000);
 
     } catch (error) {
       console.error("Failed to generate PDF:", error);
@@ -305,6 +327,12 @@ const AppContent: React.FC = () => {
       </div>
 
       <Footer onNavigate={setCurrentView} />
+      
+      <ReviewModal 
+        isOpen={isReviewModalOpen} 
+        onClose={() => setIsReviewModalOpen(false)}
+        onSubmit={handleReviewSubmit}
+      />
     </div>
   );
 };
