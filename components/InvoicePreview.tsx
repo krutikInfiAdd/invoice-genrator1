@@ -25,9 +25,26 @@ const formatCurrency = (amount: number, currency: string) => {
   }).format(amount);
 };
 
+const formatDate = (dateString: string, currency: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  // US uses MM/DD/YYYY, India/World uses DD/MM/YYYY
+  const locale = currency === 'USD' ? 'en-US' : 'en-GB';
+  return date.toLocaleDateString(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
 const InvoicePreview: React.FC<InvoicePreviewProps> = ({ details, calculations, title = 'INVOICE' }) => {
   const { subtotal, discountAmount, taxAmount, total, balanceDue } = calculations;
   const { currency, taxType } = details;
+
+  // Localization checks
+  const isUSD = currency === 'USD';
+  const taxIdLabel = isUSD ? 'EIN/Tax ID' : 'GSTIN';
+  const hsnLabel = isUSD ? 'Item Code' : 'HSN/SAC';
 
   // Check if any item has HSN to conditionally render the column
   const hasHSN = details.items.some(item => item.hsn && item.hsn.trim() !== '');
@@ -48,7 +65,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ details, calculations, 
           <p className="text-gray-600">{details.billFrom.address.split('\n').map((line, i) => <span key={i}>{line}<br/></span>)}</p>
           <p className="text-gray-600">{details.billFrom.email}</p>
           {details.billFrom.gstin && (
-            <p className="text-gray-600 font-medium mt-1">GSTIN: {details.billFrom.gstin}</p>
+            <p className="text-gray-600 font-medium mt-1">{taxIdLabel}: {details.billFrom.gstin}</p>
           )}
         </div>
       </div>
@@ -61,17 +78,17 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ details, calculations, 
           <p>{details.billTo.address.split('\n').map((line, i) => <span key={i}>{line}<br/></span>)}</p>
           {details.billTo.email && <p>{details.billTo.email}</p>}
           {details.billTo.gstin && (
-            <p className="font-medium mt-1">GSTIN: {details.billTo.gstin}</p>
+            <p className="font-medium mt-1">{taxIdLabel}: {details.billTo.gstin}</p>
           )}
         </div>
         <div className="text-left sm:text-right">
           <div className="mb-2">
             <p className="text-xs font-semibold uppercase text-gray-500">Issue Date</p>
-            <p>{details.issueDate}</p>
+            <p>{formatDate(details.issueDate, currency)}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase text-gray-500">Due Date</p>
-            <p>{details.dueDate}</p>
+            <p>{formatDate(details.dueDate, currency)}</p>
           </div>
         </div>
       </div>
@@ -82,7 +99,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ details, calculations, 
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2 sm:p-3 font-semibold text-gray-700">Description</th>
-              {hasHSN && <th className="p-2 sm:p-3 font-semibold text-gray-700 text-center">HSN/SAC</th>}
+              {hasHSN && <th className="p-2 sm:p-3 font-semibold text-gray-700 text-center">{hsnLabel}</th>}
               <th className="p-2 sm:p-3 font-semibold text-gray-700 text-center">Qty</th>
               <th className="p-2 sm:p-3 font-semibold text-gray-700 text-right">Unit Price</th>
               <th className="p-2 sm:p-3 font-semibold text-gray-700 text-right">Total</th>
@@ -145,7 +162,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ details, calculations, 
                 </div>
               ) : (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax ({details.taxRate}%):</span>
+                  <span className="text-gray-600">{isUSD ? 'Sales Tax' : 'Tax'} ({details.taxRate}%):</span>
                   <span className="font-medium">{formatCurrency(taxAmount, currency)}</span>
                 </div>
               )}

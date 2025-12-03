@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -169,18 +170,23 @@ const AppContent: React.FC = () => {
       });
       
       const imgData = canvas.toDataURL('image/png');
-      const pdfWidth = 210;
-      // Reduced margins for PDF
-      const marginX = 15;
-      const marginY = 10; // Reduced top margin to 'medium' as requested
-      const contentWidth = pdfWidth - (2 * marginX);
-      const imgHeight = (canvas.height * contentWidth) / canvas.width;
-
+      
+      // DETERMINE PAGE FORMAT
+      // If currency is USD, use 'letter' (standard for US/Canada)
+      // Otherwise use 'a4' (standard for India and rest of the world)
+      const pageFormat = activeDocument.details.currency === 'USD' ? 'letter' : 'a4';
+      
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
-        format: 'a4'
+        format: pageFormat
       });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const marginX = 15;
+      const marginY = 10;
+      const contentWidth = pdfWidth - (2 * marginX);
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', marginX, marginY, contentWidth, imgHeight);
       
