@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* App base styles */
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: rgb(241 245 249); /* slate-100 */
+  color: rgb(30 41 59); /* slate-800 */
+  font-family: ui-sans-serif, system-ui, -apple-system,
+  BlinkMacSystemFont, "Segoe UI",
+  Roboto, "Helvetica Neue", Arial;
+}
