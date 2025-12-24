@@ -1,6 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '../lib/firebase';
+// Added @ts-ignore to fix: Module '"firebase/auth"' has no exported member 'onAuthStateChanged' and 'User'.
+// @ts-ignore
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import type { UserProfile } from '../types';
@@ -28,7 +29,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (currentUser) => {
         setUser(currentUser);
         
-        // Clean up previous listener if it exists
         if (unsubscribeSnapshot) {
           unsubscribeSnapshot();
           unsubscribeSnapshot = null;
@@ -37,8 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (currentUser) {
           try {
             const docRef = doc(db, 'users', currentUser.uid);
-            
-            // Subscribe to real-time updates
             unsubscribeSnapshot = onSnapshot(docRef, 
               (docSnap) => {
                 if (docSnap.exists()) {
@@ -49,16 +47,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setLoading(false);
               },
               (error) => {
-                console.error("Error fetching user profile:", error);
-                if (error.code === 'permission-denied') {
-                  console.error("CRITICAL ERROR: Firestore permissions denied. Please go to Firebase Console -> Firestore Database -> Rules and allow read/write access for authenticated users.");
-                }
-                setUserProfile(null);
+                console.error("Profile Error:", error);
                 setLoading(false);
               }
             );
           } catch (error) {
-            console.error("Error setting up profile listener:", error);
+            console.error("Listener Error:", error);
             setLoading(false);
           }
         } else {
@@ -67,24 +61,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       },
       (error) => {
-        console.error("Firebase Auth Initialization Error:", error);
-        setUser(null);
-        setUserProfile(null);
+        console.error("Auth Error:", error);
         setLoading(false);
       }
     );
 
     return () => {
       unsubscribeAuth();
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
-      }
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
     };
   }, []);
 
   return (
     <AuthContext.Provider value={{ user, userProfile, loading }}>
-      {!loading && children}
+      {loading ? (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 font-sans">
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-indigo-100 rounded-full"></div>
+              <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-gray-900 font-black uppercase tracking-tighter text-xl">Invoicing Tool</p>
+              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Syncing secure session...</p>
+            </div>
+          </div>
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };

@@ -2,9 +2,11 @@
 export interface InvoiceItem {
   id: string;
   description: string;
-  hsn?: string; // Harmonized System Nomenclature code
+  hsn?: string;
   quantity: number;
+  unit: string; // Added: e.g., Pcs, Qty, Box
   price: number;
+  discountRate: number; // Added: percentage per item
 }
 
 export type TaxType = 'standard' | 'cgst_sgst' | 'igst' | 'none';
@@ -18,28 +20,33 @@ export interface InvoiceDetails {
     name: string;
     email: string;
     address: string;
-    gstin?: string; // GST Identification Number
+    phone?: string; // Added
+    gstin?: string;
+    state?: string; // Added
   };
   billTo: {
     name: string;
     email: string;
     address: string;
-    gstin?: string; // GST Identification Number
+    phone?: string; // Added
+    gstin?: string;
   };
   items: InvoiceItem[];
   notes: string;
   terms: string;
   currency: string;
   taxRate: number;
-  taxType: TaxType; // Defines how tax is calculated/displayed
-  amountPaid: number;
-  discount: number;
+  taxType: TaxType;
+  amountPaid: number; // This acts as "Received"
+  discount: number; // Global discount
 }
 
 export interface UserProfile {
   companyName: string;
   companyAddress: string;
+  phone?: string;
   gstin?: string;
+  state?: string;
   logo?: string | null;
   defaultNotes?: string;
   defaultTerms?: string;

@@ -1,10 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 import { TrashIcon } from './icons/TrashIcon';
+import { DownloadIcon } from './icons/DownloadIcon';
+import { PlusIcon } from './icons/PlusIcon';
 import type { InvoiceDetails } from '../types';
 
 interface DashboardProps {
@@ -23,191 +24,149 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLoad }) => {
   const [documents, setDocuments] = useState<SavedDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [fixLink, setFixLink] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      if (!user) return;
-      setError(null);
-      setFixLink(null);
+  const fetchDocuments = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
 
-      try {
-        // NOTE: We use client-side sorting to avoid requiring a Firestore Composite Index
-        // which causes "failed-precondition" errors for new users.
-        const q = query(
-          collection(db, 'invoices'),
-          where('userId', '==', user.uid)
-        );
+    try {
+      const q = query(collection(db, 'invoices'), where('userId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      const docsList: SavedDocument[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.details && !data.details.items) data.details.items = [];
+        docsList.push({ id: doc.id, ...data } as SavedDocument);
+      });
+      docsList.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+      setDocuments(docsList);
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to load your documents.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const querySnapshot = await getDocs(q);
-        const docs: SavedDocument[] = [];
-        querySnapshot.forEach((doc) => {
-          docs.push({ id: doc.id, ...doc.data() } as SavedDocument);
-        });
+  useEffect(() => { fetchDocuments(); }, [user]);
 
-        // Sort in memory (descending by updatedAt)
-        docs.sort((a, b) => {
-          const timeA = a.updatedAt?.seconds || 0;
-          const timeB = b.updatedAt?.seconds || 0;
-          return timeB - timeA;
-        });
+  const handleLoad = (type: 'invoice' | 'quotation', details: InvoiceDetails) => {
+    onLoad(type, details);
+  };
 
-        setDocuments(docs);
-      } catch (err: any) {
-        console.error("Error fetching documents:", err);
-        
-        const isPermissionError = err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions');
-        const isIndexError = err.code === 'failed-precondition' || err.message?.includes('requires an index');
-
-        if (isPermissionError) {
-          setError('Access Denied: Please check your Firestore Security Rules in the Firebase Console.');
-        } else if (isIndexError) {
-          const match = err.message?.match(/https:\/\/console\.firebase\.google\.com[^\s]*/);
-          const url = match ? match[0] : null;
-          
-          setError('Missing Index: Firestore requires a specific index to sort these documents.');
-          if (url) {
-            setFixLink(url);
-          }
-        } else {
-          setError('Failed to load documents. Please try again later.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDocuments();
-  }, [user]);
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
-    
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Don't trigger the row click (load)
+    if (!confirm('Are you sure you want to delete this permanently?')) return;
     setDeleteId(id);
     try {
       await deleteDoc(doc(db, 'invoices', id));
       setDocuments(prev => prev.filter(d => d.id !== id));
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      alert("Failed to delete document.");
-    } finally {
-      setDeleteId(null);
-    }
+    } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };
 
-  if (loading) {
+  if (loading && documents.length === 0) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
-          {fixLink && (
-            <div className="mt-4 p-4 bg-white rounded border border-red-100 shadow-sm">
-               <h4 className="font-bold text-red-800 mb-2">Action Required</h4>
-               <p className="text-sm text-gray-600 mb-3">
-                 Firebase requires a composite index to perform this query (sorting by date for a specific user).
-               </p>
-               <a 
-                 href={fixLink} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-               >
-                 Create Missing Index &rarr;
-               </a>
-               <p className="mt-2 text-xs text-gray-500">
-                 Clicking this button will open the Firebase Console. Simply click "Create Index" in the dialog that appears and wait a few minutes.
-               </p>
-            </div>
-          )}
-        </div>
+      <div className="flex flex-col justify-center items-center h-64 space-y-4">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+        <p className="text-gray-500 font-black tracking-tight uppercase text-xs">Accessing Cloud History...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2 text-gray-900">My Documents</h1>
-      <p className="text-gray-500 mb-8">Manage your saved invoices and quotations.</p>
+    <div className="max-w-6xl mx-auto px-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Your History</h1>
+          <p className="text-gray-500 mt-1">Manage and edit your saved invoices and quotations.</p>
+        </div>
+        <div className="flex gap-2">
+           <Button variant="outline" onClick={fetchDocuments} disabled={loading} size="sm">
+            Refresh
+          </Button>
+        </div>
+      </div>
 
-      {documents.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-lg shadow border border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-          <p className="text-gray-500">Create an invoice or quotation and save it to see it here.</p>
+      {error && (
+        <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl">
+          <p className="text-red-700 text-sm font-bold">{error}</p>
+        </div>
+      )}
+
+      {documents.length === 0 && !loading ? (
+        <div className="text-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center">
+          <div className="w-24 h-24 bg-indigo-50 text-indigo-200 rounded-full flex items-center justify-center mb-6">
+            <DownloadIcon className="w-12 h-12 rotate-180" />
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">Cloud is Empty</h3>
+          <p className="text-gray-500 max-w-xs mx-auto mb-8">Create your first professional invoice to save it here for future use.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Document</th>
+                  <th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Client Name</th>
+                  <th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                  <th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Value</th>
+                  <th className="px-6 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-50">
                 {documents.map((doc) => {
-                  // Calculate total safely
-                  const subtotal = doc.details.items.reduce((acc, item) => acc + item.quantity * item.price, 0);
-                  const discountAmount = (subtotal * (doc.details.discount || 0)) / 100;
-                  
-                  let taxAmount = 0;
-                  if (doc.details.taxType !== 'none') {
-                    taxAmount = ((subtotal - discountAmount) * doc.details.taxRate) / 100;
-                  }
-                  
-                  const total = subtotal - discountAmount + taxAmount;
-
-                  return (
-                    <tr key={doc.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${doc.type === 'invoice' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
-                          {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}
-                        </span>
+                   const total = (doc.details.items?.reduce((acc, item) => acc + (item.quantity * item.price), 0) || 0);
+                   return (
+                    <tr 
+                      key={doc.id} 
+                      className="hover:bg-indigo-50/30 transition-colors group cursor-pointer"
+                      onClick={() => handleLoad(doc.type, doc.details)}
+                    >
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter ${
+                            doc.type === 'invoice' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-purple-50 text-purple-600 border border-purple-100'
+                          }`}>
+                            {doc.type}
+                          </span>
+                          <span className="font-black text-gray-900 text-sm">#{doc.details.invoiceNumber}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {doc.details.invoiceNumber}
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="text-sm font-bold text-gray-700">{doc.details.billTo.name || 'Untitled Client'}</div>
+                        <div className="text-[10px] text-gray-400 font-medium">{doc.details.billTo.phone}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {doc.details.billTo.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-medium text-gray-500">
                         {doc.details.issueDate}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {total.toLocaleString('en-US', { style: 'currency', currency: doc.details.currency })}
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className="text-sm font-black text-indigo-700">
+                          {doc.details.currency} {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-indigo-600 hover:text-indigo-900 mr-2"
-                          onClick={() => onLoad(doc.type, doc.details)}
-                        >
-                          Load
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDelete(doc.id)}
-                          disabled={deleteId === doc.id}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </Button>
+                      <td className="px-6 py-5 whitespace-nowrap text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); handleLoad(doc.type, doc.details); }}
+                          >
+                            Open
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-red-300 hover:text-red-600 hover:bg-red-50"
+                            onClick={(e) => handleDelete(e, doc.id)} 
+                            disabled={deleteId === doc.id}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );

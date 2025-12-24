@@ -5,26 +5,29 @@ import type { InvoiceDetails, InvoiceItem, TaxType, UserProfile } from '../types
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 
 const getInitialDetails = (type: 'invoice' | 'quotation'): Omit<InvoiceDetails, 'logo'> => ({
-  invoiceNumber: type === 'invoice' ? 'INV-001' : 'QTN-001',
+  invoiceNumber: type === 'invoice' ? '1' : '1',
   issueDate: getTodayDate(),
   dueDate: getTodayDate(),
   billFrom: {
     name: '',
     email: '',
     address: '',
+    phone: '',
     gstin: '',
+    state: '',
   },
   billTo: {
     name: '',
     email: '',
     address: '',
+    phone: '',
     gstin: '',
   },
   items: [
-    { id: crypto.randomUUID(), description: '', hsn: '', quantity: 1, price: 0 },
+    { id: crypto.randomUUID(), description: '', hsn: '', quantity: 1, unit: 'Qty', price: 0, discountRate: 0 },
   ],
   notes: '',
-  terms: '',
+  terms: 'Thank you for doing business with us.',
   currency: 'INR',
   taxRate: 0,
   taxType: 'none',
@@ -85,94 +88,44 @@ export const useInvoice = (type: 'invoice' | 'quotation' = 'invoice') => {
       description: '',
       hsn: '',
       quantity: 1,
+      unit: 'Qty',
       price: 0,
+      discountRate: 0,
     };
-    setDetails(prev => {
-      const newItems = [...prev.items, newItem];
-      
-      // Auto-select 'none' if no HSNs exist across all items
-      const hasAnyHSN = newItems.some(item => item.hsn && item.hsn.trim() !== '');
-      let newTaxType = prev.taxType;
-      if (!hasAnyHSN) {
-        newTaxType = 'none';
-      }
-
-      return { ...prev, items: newItems, taxType: newTaxType };
-    });
+    setDetails(prev => ({ ...prev, items: [...prev.items, newItem] }));
   };
 
   const updateItem = (id: string, field: keyof Omit<InvoiceItem, 'id'>, value: string | number) => {
-    setDetails(prev => {
-      const newItems = prev.items.map(item => 
+    setDetails(prev => ({
+      ...prev,
+      items: prev.items.map(item => 
         item.id === id ? { ...item, [field]: value } : item
-      );
-
-      let newTaxType = prev.taxType;
-
-      // Auto-switch tax logic: check HSN availability when HSN field is updated
-      if (field === 'hsn') {
-        const hasAnyHSN = newItems.some(item => item.hsn && item.hsn.trim() !== '');
-        
-        if (!hasAnyHSN) {
-          // If no items have HSN, auto-select 'none'
-          newTaxType = 'none';
-        } else if (prev.taxType === 'none') {
-          // If HSN is added and tax was none, auto-select 'standard'
-          newTaxType = 'standard';
-        }
-      }
-
-      return {
-        ...prev,
-        items: newItems,
-        taxType: newTaxType
-      };
-    });
+      )
+    }));
   };
 
   const removeItem = (id: string) => {
-    setDetails(prev => {
-      const newItems = prev.items.filter(item => item.id !== id);
-      
-      let newTaxType = prev.taxType;
-      // If we are removing an item and currently have tax enabled, check if we still have HSNs
-      // Only enforce 'none' if we run out of HSNs.
-      const hasAnyHSN = newItems.some(item => item.hsn && item.hsn.trim() !== '');
-      if (!hasAnyHSN) {
-        newTaxType = 'none';
-      }
-
-      return {
-        ...prev,
-        items: newItems,
-        taxType: newTaxType
-      };
-    });
+    setDetails(prev => ({
+      ...prev,
+      items: prev.items.filter(item => item.id !== id)
+    }));
   };
 
   const loadDetails = (newDetails: InvoiceDetails) => {
-    const defaults = getInitialDetails(type);
-    setDetails({
-      ...defaults,
-      ...newDetails,
-      billFrom: { ...defaults.billFrom, ...newDetails.billFrom },
-      billTo: { ...defaults.billTo, ...newDetails.billTo },
-      items: newDetails.items || defaults.items,
-      logo: newDetails.logo || null
-    });
+    setDetails({ ...newDetails });
   };
 
   const prefillUserProfile = (profile: UserProfile, email: string) => {
     setDetails(prev => ({
       ...prev,
       logo: profile.logo || prev.logo,
-      notes: profile.defaultNotes ?? prev.notes,
-      terms: profile.defaultTerms ?? prev.terms,
       billFrom: {
         ...prev.billFrom,
         name: profile.companyName || prev.billFrom.name,
         address: profile.companyAddress || prev.billFrom.address,
         gstin: profile.gstin || prev.billFrom.gstin,
+        phone: profile.phone || prev.billFrom.phone,
+        state: profile.state || prev.billFrom.state,
         email: email || prev.billFrom.email
       }
     }));
@@ -180,71 +133,45 @@ export const useInvoice = (type: 'invoice' | 'quotation' = 'invoice') => {
 
   const validate = (): boolean => {
     const newErrors: InvoiceErrors = {};
-    const emailRegex = /\S+@\S+\.\S+/;
-
-    if (!details.invoiceNumber.trim()) newErrors.invoiceNumber = 'Number is required.';
-    if (!details.issueDate) newErrors.issueDate = 'Issue date is required.';
-    if (!details.dueDate) newErrors.dueDate = 'Due date is required.';
-
-    if (!details.billFrom.name.trim()) newErrors['billFrom.name'] = 'Company name is required.';
-    if (!details.billFrom.email.trim()) {
-      newErrors['billFrom.email'] = 'Email is required.';
-    } else if (!emailRegex.test(details.billFrom.email)) {
-      newErrors['billFrom.email'] = 'Invalid email format.';
-    }
-    if (!details.billFrom.address.trim()) newErrors['billFrom.address'] = 'Address is required.';
-
-    if (!details.billTo.name.trim()) newErrors['billTo.name'] = 'Client name is required.';
-    // Validation for Bill To Email is now optional
-    if (details.billTo.email.trim() && !emailRegex.test(details.billTo.email)) {
-      newErrors['billTo.email'] = 'Invalid email format.';
-    }
-    if (!details.billTo.address.trim()) newErrors['billTo.address'] = 'Client address is required.';
-    
-    details.items.forEach((item, index) => {
-      if (!item.description.trim()) {
-        newErrors[`items.${index}.description`] = 'Description is required.';
-      }
-      if (item.quantity <= 0) {
-        newErrors[`items.${index}.quantity`] = 'Must be > 0.';
-      }
-      if (item.price < 0) {
-        newErrors[`items.${index}.price`] = 'Cannot be negative.';
-      }
-    });
-
-    if (details.taxRate < 0) {
-      newErrors.taxRate = 'Cannot be negative.';
-    }
-    
-    if (details.discount < 0) {
-      newErrors.discount = 'Cannot be negative.';
-    } else if (details.discount > 100) {
-      newErrors.discount = 'Cannot exceed 100%.';
-    }
-
-    if (details.amountPaid < 0) {
-      newErrors.amountPaid = 'Cannot be negative.';
-    }
-
+    if (!details.billFrom.name.trim()) newErrors['billFrom.name'] = 'Required';
+    if (!details.billTo.name.trim()) newErrors['billTo.name'] = 'Required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const calculations = useMemo(() => {
-    const subtotal = details.items.reduce((acc, item) => acc + item.quantity * item.price, 0);
-    const discountAmount = (subtotal * (details.discount || 0)) / 100;
-    const subtotalAfterDiscount = subtotal - discountAmount;
+    let subtotalBeforeItemDiscounts = 0;
+    let totalItemDiscounts = 0;
+    let totalQuantity = 0;
+
+    details.items.forEach(item => {
+      const lineTotal = item.quantity * item.price;
+      const lineDiscount = (lineTotal * (item.discountRate || 0)) / 100;
+      subtotalBeforeItemDiscounts += lineTotal;
+      totalItemDiscounts += lineDiscount;
+      totalQuantity += item.quantity;
+    });
+
+    const subtotal = subtotalBeforeItemDiscounts - totalItemDiscounts;
+    const globalDiscountAmount = (subtotal * (details.discount || 0)) / 100;
+    const finalSubtotal = subtotal - globalDiscountAmount;
     
-    // If tax type is none, tax is 0 regardless of rate
     let taxAmount = 0;
     if (details.taxType !== 'none') {
-      taxAmount = (subtotalAfterDiscount * details.taxRate) / 100;
+      taxAmount = (finalSubtotal * details.taxRate) / 100;
     }
     
-    const total = subtotalAfterDiscount + taxAmount;
+    const total = finalSubtotal + taxAmount;
     const balanceDue = total - (details.amountPaid || 0);
-    return { subtotal, discountAmount, taxAmount, total, balanceDue };
+    
+    return { 
+      subtotal: subtotalBeforeItemDiscounts, 
+      totalItemDiscounts: totalItemDiscounts + globalDiscountAmount, 
+      taxAmount, 
+      total, 
+      balanceDue,
+      totalQuantity
+    };
   }, [details.items, details.taxRate, details.discount, details.amountPaid, details.taxType]);
   
   return {
