@@ -22,6 +22,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   updateLogo,
   removeLogo
 }) => {
+  // Localization helpers
+  const isUSD = details.currency === 'USD';
+  const taxIdLabel = isUSD ? 'EIN / Tax ID (Optional)' : 'GSTIN (Optional)';
+  const taxIdPlaceholder = isUSD ? 'e.g., 12-3456789' : 'e.g., 22AAAAA0000A1Z5';
+  const addressPlaceholder = isUSD ? 'Address, City, State, Zip Code' : 'Address, City, State, Pincode';
+  const taxLabel = isUSD ? 'Sales Tax' : 'Standard Tax';
+
   return (
     <div className="space-y-8">
       {/* Invoice Meta */}
