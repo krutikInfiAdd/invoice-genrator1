@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { GSTCalculation, CalculationMode } from '../../types';
+  import { GSTCalculation, CalculationMode } from '../../types';
 import GSTForm from './GSTForm';
 import ResultsDisplay from './ResultsDisplay';
 import TaxHistory from './TaxHistory';

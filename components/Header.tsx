@@ -77,13 +77,15 @@ export const Header: React.FC<HeaderProps> = ({
               
               {isBusinessMenuOpen && (
                 <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 animate-fade-in z-50">
-                  <button onClick={() => alert('Online Pricing Calculator Coming Soon!')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
+                  <button onClick={() => handleNavClick('gstcalculator')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
                     📊 Online Pricing Calculator
                   </button>
                   <button onClick={() => handleNavClick('quickreceipt')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
                     📄 QuickReceipt Generator
                   </button>
-                  <button onClick={() => alert('PDF Cropper Coming Soon!')} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
+                  <button     onClick={() => {
+                    handleNavClick('pdfcropper');
+                  }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2">
                     ✂️ PDF Cropper
                   </button>
                 </div>

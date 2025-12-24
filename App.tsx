@@ -17,8 +17,10 @@ import { EditIcon } from './components/icons/EditIcon';
 import { DownloadIcon } from './components/icons/DownloadIcon';
 import { ReviewModal } from './components/ReviewModal';
 import { QuickReceipt } from './components/QuickReceipt';
+import PdfCropperPage from "@/components/pdf-cropper/pdf-cropperPage.tsx";
+import {GSTCalculatorPage} from "@/components/gstcal";
 
-export type AppView = 'invoice' | 'quotation' | 'quickreceipt' | 'blog' | 'about' | 'contact' | 'privacy' | 'terms';
+export type AppView = 'invoice' | 'quotation' | 'quickreceipt'|'pdfcropper' |'gstcalculator' | 'business' | 'blog' | 'about' | 'contact' | 'privacy' | 'terms';
 
 const ToolView: React.FC<{ 
   type: 'invoice' | 'quotation', 
@@ -160,6 +162,10 @@ const App: React.FC = () => {
         return <ToolView type="quotation" invoiceHook={quotation} onDownload={handleDownloadPdf} isGenerating={isGenerating} showPreviewInitially={showPreviewOnLoad} />;
       case 'quickreceipt':
         return <QuickReceipt />;
+      case 'pdfcropper':
+        return <PdfCropperPage />;
+      case 'gstcalculator':
+        return <GSTCalculatorPage />;
       case 'blog':
         return <BlogPage />;
       case 'about':
